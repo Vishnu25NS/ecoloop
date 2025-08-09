@@ -1,75 +1,94 @@
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AppProvider, useAppContext } from './context/AppContext';
+import LoginPage from './LoginPage';
+import SignupPage from './SignupPage';
 
+// Import User components
 import Navigation from './components/Navigation';
-import UploadPage from './pages/UploadPage';
 import SchedulePage from './pages/SchedulePage';
-import ClassificationPage from './pages/ClassificationPage';
 import CreditsPage from './pages/CreditsPage';
 import StatusPage from './pages/StatusPage';
-import AppContext from './context/AppContext';
+import ClassifyPage from './pages/ClassifyPage';
+import HistoryPage from './pages/HistoryPage';
 
-const App = () => {
-  const [credits, setCredits] = useState(125);
-  const [classification, setClassification] = useState(null);
-  const [pickups, setPickups] = useState([]);
+// Import Collector components
+import CollectorNavigation from './collector/CollectorNavigation';
+import CollectorDashboard from './collector/CollectorDashboard';
+import PickupManagement from './collector/PickupManagement';
+import CollectorSchedulePage from './collector/CollectorSchedulePage';
+import CollectorMapPage from './collector/CollectorMapPage';
 
-  const showToast = (msg) => alert(msg);
+const AppContent = () => {
+  const { isAuthenticated, mode, user, isAuthReady, logout } = useAppContext();
 
-  const addCredits = (amount) => setCredits((c) => c + amount);
-  const addPickup = (pickup) => setPickups((p) => [...p, pickup]);
-
-  const contextValue = {
-    credits,
-    classification,
-    pickups,
-    setClassification,
-    addCredits,
-    addPickup,
-    showToast,
-  };
-
-  useEffect(() => {
-    if (window.location.pathname === '/') {
-      window.history.replaceState({}, '', '/upload');
-    }
-  }, []);
+  if (!isAuthReady) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+        <h1 style={{ color: '#2e7d32', fontSize: '2.5rem', fontWeight: '700' }}>🌱 EcoLoop</h1>
+        <div style={{ fontSize: '1.5rem', color: '#666' }}>Loading...</div>
+      </div>
+    );
+  }
 
   return (
-    <AppContext.Provider value={contextValue}>
-      <div style={{ minHeight: '100vh', backgroundColor: '#fafafa', fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif' }}>
-        {/* Header */}
+    <BrowserRouter>
+      <div style={{ minHeight: '100vh', backgroundColor: '#fafafa' }}>
         <header style={{ backgroundColor: '#2e7d32', color: 'white', padding: '1.5rem 0', textAlign: 'center' }}>
-          <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '700', textShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>🌱 EcoLoop</h1>
-          <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '1.1rem', fontWeight: '300' }}>Smart Waste Management Platform</p>
+          <h1 style={{ margin: 0, fontSize: '2.5rem', fontWeight: '700' }}>🌱 EcoLoop</h1>
+          <p style={{ margin: '0.5rem 0 0 0', opacity: 0.9, fontSize: '1.1rem' }}>Smart Waste Management Platform</p>
         </header>
+        
+        {isAuthenticated && user?.roles?.includes('collector') && mode === 'collector' ? (
+          <CollectorNavigation user={user} logout={logout} />
+        ) : isAuthenticated && user?.roles?.includes('user') && mode === 'user' ? (
+          <Navigation user={user} logout={logout} />
+        ) : null}
 
-        <Router>
-          <Navigation />
-          <main style={{ minHeight: 'calc(100vh - 200px)' }}>
-            <Routes>
-              <Route path="/upload" element={<UploadPage />} />
-              <Route path="/schedule" element={<SchedulePage />} />
-              <Route path="/classification" element={<ClassificationPage />} />
-              <Route path="/credits" element={<CreditsPage />} />
-              <Route path="/status" element={<StatusPage />} />
-              <Route path="*" element={<UploadPage />} />
-            </Routes>
-          </main>
-        </Router>
-
-        {/* Footer */}
+        <main style={{ minHeight: 'calc(100vh - 200px)' }}>
+          <Routes>
+            {!isAuthenticated ? (
+              <>
+                <Route path="/" element={<Navigate to="/login" />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/signup" element={<SignupPage />} />
+                <Route path="*" element={<Navigate to="/login" />} />
+              </>
+            ) : mode === 'collector' && user?.roles?.includes('collector') ? (
+              <>
+                <Route path="/collector/dashboard" element={<CollectorDashboard user={user} />} />
+                <Route path="/collector/pickups" element={<PickupManagement />} />
+                <Route path="/collector/map" element={<CollectorMapPage />} />
+                <Route path="/collector/schedule" element={<CollectorSchedulePage />} />
+                <Route path="*" element={<Navigate to="/collector/dashboard" />} />
+              </>
+            ) : mode === 'user' && user?.roles?.includes('user') ? (
+              <>
+                <Route path="/classify" element={<ClassifyPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/schedule" element={<SchedulePage />} />
+                <Route path="/credits" element={<CreditsPage />} />
+                <Route path="/status" element={<StatusPage />} />
+                <Route path="*" element={<Navigate to="/classify" />} />
+              </>
+            ) : (
+              <Route path="*" element={<Navigate to="/login" />} />
+            )}
+          </Routes>
+        </main>
+        
         <footer style={{ backgroundColor: '#e8f5e8', padding: '2rem 1rem', textAlign: 'center', color: '#2e7d32', marginTop: '3rem' }}>
           <p style={{ margin: 0, fontSize: '1rem', fontWeight: '500' }}>🌍 Together, we're building a cleaner, greener future</p>
-          <div style={{ marginTop: '1rem', fontSize: '0.875rem', opacity: 0.8, display: 'flex', justifyContent: 'center', gap: '2rem', flexWrap: 'wrap' }}>
-            <span>📧 support@ecoloop.com</span>
-            <span>📞 1-800-ECO-LOOP</span>
-            <span>🌐 www.ecoloop.com</span>
-          </div>
         </footer>
       </div>
-    </AppContext.Provider>
+    </BrowserRouter>
   );
 };
+
+const App = () => (
+  <AppProvider>
+    <AppContent />
+  </AppProvider>
+);
 
 export default App;
