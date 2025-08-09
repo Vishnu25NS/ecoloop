@@ -2,29 +2,27 @@ import React, { useState } from 'react';
 
 // WastePhotoUpload Component
 const WastePhotoUpload = ({ onImageUpload }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setSelectedFile(file);
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target.result);
+        setSelectedImage(e.target.result);
       };
       reader.readAsDataURL(file);
     }
   };
 
   const handleSubmit = async () => {
-    if (selectedFile && onImageUpload) {
+    if (selectedImage && onImageUpload) {
       setIsUploading(true);
-      await onImageUpload(selectedFile);
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate upload
+      onImageUpload(selectedImage);
       setIsUploading(false);
-      setSelectedFile(null);
-      setImagePreview(null);
+      setSelectedImage(null);
       document.querySelector('input[type="file"]').value = '';
     }
   };
@@ -44,9 +42,9 @@ const WastePhotoUpload = ({ onImageUpload }) => {
         justifyContent: 'center',
         alignItems: 'center'
       }}>
-        {imagePreview ? (
+        {selectedImage ? (
           <img 
-            src={imagePreview} 
+            src={selectedImage} 
             alt="Waste preview" 
             style={{
               maxWidth: '100%',
@@ -81,17 +79,17 @@ const WastePhotoUpload = ({ onImageUpload }) => {
       
       <button
         onClick={handleSubmit}
-        disabled={!selectedFile || isUploading}
+        disabled={!selectedImage || isUploading}
         style={{
           width: '100%',
           padding: '1rem',
-          backgroundColor: (selectedFile && !isUploading) ? '#4caf50' : '#e0e0e0',
-          color: (selectedFile && !isUploading) ? 'white' : '#999',
+          backgroundColor: (selectedImage && !isUploading) ? '#4caf50' : '#e0e0e0',
+          color: (selectedImage && !isUploading) ? 'white' : '#999',
           border: 'none',
           borderRadius: '8px',
           fontSize: '1.1rem',
           fontWeight: '600',
-          cursor: (selectedFile && !isUploading) ? 'pointer' : 'not-allowed',
+          cursor: (selectedImage && !isUploading) ? 'pointer' : 'not-allowed',
           transition: 'all 0.3s ease'
         }}
       >

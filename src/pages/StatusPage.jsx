@@ -2,16 +2,14 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import PickupStatusList from '../components/PickupStatusList';
 
+// Status Page
 const StatusPage = () => {
-  const { userPickups } = useAppContext();
-  const pickups = Array.isArray(userPickups) ? userPickups : [];
+  const { pickups } = useAppContext();
 
   const statusCounts = pickups.reduce((acc, pickup) => {
     acc[pickup.status] = (acc[pickup.status] || 0) + 1;
     return acc;
   }, {});
-
-  const getStatusColor = (status) => ({ 'Pending': '#ff9800', 'In Progress': '#2196f3', 'Completed': '#4caf50', 'Cancelled': '#f44336' }[status] || '#666');
 
   return (
     <div style={{ padding: '2rem 1rem' }}>
@@ -24,6 +22,7 @@ const StatusPage = () => {
         </p>
       </div>
       
+      {/* Status Summary */}
       {pickups.length > 0 && (
         <div style={{ 
           maxWidth: '800px', 
@@ -44,7 +43,9 @@ const StatusPage = () => {
               <div style={{ 
                 fontSize: '2rem', 
                 fontWeight: '700', 
-                color: getStatusColor(status),
+                color: status === 'Completed' ? '#4caf50' : 
+                       status === 'Pending' ? '#ff9800' : 
+                       status === 'In Progress' ? '#2196f3' : '#f44336',
                 marginBottom: '0.5rem'
               }}>
                 {count}
@@ -63,7 +64,7 @@ const StatusPage = () => {
         </div>
       )}
       
-      <PickupStatusList pickups={userPickups} />
+      <PickupStatusList pickups={pickups} />
     </div>
   );
 };

@@ -1,26 +1,28 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import PickupScheduler from '../components/PickupScheduler';
+// import { useToast } from '../hooks/useToast'; // If you have this file
 
+// Schedule Page
 const SchedulePage = () => {
+  // const { showToast } = useToast();
   const { addPickup, addCredits } = useAppContext();
-  const [showNotification, setShowNotification] = useState({ visible: false, message: '', type: 'success' });
 
-  const handleSchedulePickup = async (pickupData) => {
-    try {
-      await addPickup({
-        wasteType: pickupData.wasteType,
-        pickupDate: pickupData.pickupDate,
-        pickupTime: pickupData.pickupTime,
-        pickupLocation: pickupData.pickupLocation,
-        status: 'Pending',
-        timestamp: new Date().toISOString()
-      });
-      setShowNotification({ visible: true, message: 'Pickup scheduled successfully! We\'ll contact you soon.', type: 'success' });
-    } catch (error) {
-      console.error("Failed to schedule pickup:", error);
-      setShowNotification({ visible: true, message: 'Failed to schedule pickup. Please try again.', type: 'error' });
-    }
+  const showToast = (msg) => alert(msg);
+
+  const handleSchedulePickup = (pickupData) => {
+    const newPickup = {
+      ...pickupData,
+      id: Date.now(),
+      status: 'Pending',
+      date: pickupData.pickupDate,
+      time: pickupData.pickupTime,
+      location: pickupData.pickupLocation
+    };
+    
+    addPickup(newPickup);
+    addCredits(50);
+    showToast('Pickup scheduled successfully! We\'ll contact you soon.', 'success');
   };
 
   return (
